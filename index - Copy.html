@@ -1,0 +1,255 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bank and Stock System</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-image: url('https://static.businessworld.in/stock-market-trends-and-investors_20240516085810original_image_48.webp');
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      color: white;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 20px auto;
+      background: rgba(0, 0, 0, 0.8);
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    nav {
+      display: flex;
+      justify-content: space-around;
+      padding: 10px;
+      background-color: #333;
+      margin-bottom: 20px;
+    }
+
+    nav a {
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    nav a:hover {
+      text-decoration: underline;
+    }
+
+    h1, h2 {
+      text-align: center;
+    }
+
+    input, select, button {
+      display: block;
+      width: calc(100% - 20px);
+      padding: 10px;
+      margin: 10px auto;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    button {
+      background-color: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    .chart-container {
+      background: white;
+      color: black;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 4px;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="#" id="nav-home">Home</a>
+    <a href="#" id="nav-portfolio">Portfolio</a>
+    <a href="#" id="nav-stocks">Stocks</a>
+    <a href="#" id="nav-about">About</a>
+  </nav>
+
+  <div class="container" id="home-section">
+    <h1>Bank Account System</h1>
+    <div id="login-section">
+      <h2>Login</h2>
+      <input type="text" id="username" placeholder="Username">
+      <input type="password" id="password" placeholder="Password">
+      <select id="bank-select">
+        <option value="" disabled selected>Select Your Bank</option>
+        <option value="HDFC Bank">HDFC Bank</option>
+        <option value="Pipalnagar Bank">Pipalnagar Bank</option>
+      </select>
+      <button id="login-btn">Login</button>
+      <p id="login-message"></p>
+    </div>
+
+    <div id="account-section" class="hidden">
+      <h2>Welcome to <span id="selected-bank"></span></h2>
+      <p>Your current balance is: <strong>$<span id="balance">0</span></strong></p>
+      <input type="number" id="amount" placeholder="Enter amount">
+      <button id="deposit-btn">Deposit</button>
+      <button id="withdraw-btn">Withdraw</button>
+      <p id="transaction-message"></p>
+    </div>
+  </div>
+
+  <div class="container hidden" id="portfolio-section">
+    <h2>Your Portfolio</h2>
+    <p><strong>Invested Stocks:</strong></p>
+    <ul id="invested-stocks"></ul>
+    <p><strong>Total Portfolio Value:</strong> $<span id="portfolio-value">0.00</span></p>
+  </div>
+
+  <div class="container hidden" id="stocks-section">
+    <h2>Stock Market</h2>
+    <div class="chart-container" id="stock-chart">
+      <canvas id="chart"></canvas>
+    </div>
+    <input type="text" id="stock-name" placeholder="Stock Name">
+    <input type="number" id="stock-price" placeholder="Stock Price (per unit)">
+    <input type="number" id="stock-quantity" placeholder="Quantity">
+    <button id="buy-stock">Buy Stock</button>
+    <p id="stock-message"></p>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    const sections = {
+      home: document.getElementById("home-section"),
+      portfolio: document.getElementById("portfolio-section"),
+      stocks: document.getElementById("stocks-section"),
+    };
+
+    document.querySelectorAll("nav a").forEach(link => {
+      link.addEventListener("click", (e) => {
+        e.preventDefault();
+        const target = link.id.replace("nav-", "");
+        Object.values(sections).forEach(section => section.classList.add("hidden"));
+        sections[target].classList.remove("hidden");
+      });
+    });
+
+    const userAccount = {
+      username: "user",
+      password: "pass",
+      balance: 1000,
+    };
+
+    document.getElementById('login-btn').addEventListener('click', () => {
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      const selectedBank = document.getElementById('bank-select').value;
+
+      if (!selectedBank) {
+        document.getElementById('login-message').textContent = "Please select a bank.";
+        return;
+      }
+
+      if (username === userAccount.username && password === userAccount.password) {
+        document.getElementById('login-section').classList.add('hidden');
+        document.getElementById('account-section').classList.remove('hidden');
+        document.getElementById('balance').textContent = userAccount.balance.toFixed(2);
+        document.getElementById('selected-bank').textContent = selectedBank;
+        document.getElementById('login-message').textContent = "";
+      } else {
+        document.getElementById('login-message').textContent = "Invalid username or password.";
+      }
+    });
+
+    document.getElementById('deposit-btn').addEventListener('click', () => {
+      const amount = parseFloat(document.getElementById('amount').value);
+      if (amount > 0) {
+        userAccount.balance += amount;
+        document.getElementById('balance').textContent = userAccount.balance.toFixed(2);
+        document.getElementById('transaction-message').textContent = `Successfully deposited $${amount.toFixed(2)}.`;
+      } else {
+        document.getElementById('transaction-message').textContent = "Please enter a valid amount.";
+      }
+    });
+
+    document.getElementById('withdraw-btn').addEventListener('click', () => {
+      const amount = parseFloat(document.getElementById('amount').value);
+      if (amount > 0 && amount <= userAccount.balance) {
+        userAccount.balance -= amount;
+        document.getElementById('balance').textContent = userAccount.balance.toFixed(2);
+        document.getElementById('transaction-message').textContent = `Successfully withdrew $${amount.toFixed(2)}.`;
+      } else if (amount > userAccount.balance) {
+        document.getElementById('transaction-message').textContent = "Insufficient balance.";
+      } else {
+        document.getElementById('transaction-message').textContent = "Please enter a valid amount.";
+      }
+    });
+
+    let portfolio = [];
+    let totalPortfolioValue = 0;
+
+    document.getElementById("buy-stock").addEventListener("click", () => {
+      const name = document.getElementById("stock-name").value;
+      const price = parseFloat(document.getElementById("stock-price").value);
+      const quantity = parseInt(document.getElementById("stock-quantity").value, 10);
+
+      if (name && price > 0 && quantity > 0) {
+        const total = price * quantity;
+        portfolio.push({ name, price, quantity, total });
+        totalPortfolioValue += total;
+
+        document.getElementById("invested-stocks").innerHTML = portfolio.map(stock => `
+          <li>${stock.name} - ${stock.quantity} units @ $${stock.price.toFixed(2)}</li>
+        `).join("");
+
+        document.getElementById("portfolio-value").textContent = totalPortfolioValue.toFixed(2);
+        document.getElementById("stock-message").textContent = "Stock purchased successfully!";
+      } else {
+        document.getElementById("stock-message").textContent = "Please provide valid inputs.";
+      }
+    });
+
+    const ctx = document.getElementById("chart").getContext("2d");
+    const chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: Array.from({ length: 10 }, (_, i) => `Point ${i + 1}`),
+        datasets: [{
+          label: "Stock Prices",
+          data: Array.from({ length: 10 }, () => Math.random() * 100),
+          borderColor: 'rgba(0, 123, 255, 0.8)',
+          fill: false,
+        }],
+      },
+      options: {
+        responsive: true,
+        scales: {
+          x: { display: true, title: { display: true, text: "Time" } },
+          y: { display: true, title: { display: true, text: "Price" } },
+        },
+      },
+    });
+
+    setInterval(() => {
+      chart.data.datasets[0].data.shift();
+      chart.data.datasets[0].data.push(Math.random() * 100);
+      chart.update();
+    }, 2000);
+  </script>
+</body>
+</html>
